@@ -24,7 +24,6 @@ void doReadLoop(int* frequency) {
 
     FILE *f = fopen("input1.txt", "r");
     while (1 == fscanf(f, "%d\n", &frequencyChange)) {
-        printf("frequency: %d, change: %d\n", *frequency, frequencyChange);
         *frequency += frequencyChange;
 
         if (hasSeenFrequency(*frequency)) {
