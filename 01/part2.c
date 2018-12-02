@@ -2,12 +2,23 @@
 #import <stdlib.h>
 #import <stdbool.h>
 
-int* previouslySeenFrequencies = NULL;
-int previouslySeenFrequenciesCount = 0;
+const int hashTableSize = 4*1024;
+void* hashTable[hashTableSize];
+int hashTableEntryLengths[hashTableSize];
+
+int hashTableIndex(int frequency) {
+    return abs(frequency) % hashTableSize;
+}
 
 bool hasSeenFrequency(int frequency) {
-    for (int i = 0; i < previouslySeenFrequenciesCount; i++) {
-        if (frequency == previouslySeenFrequencies[i]) {
+    int index = hashTableIndex(frequency);
+    if (NULL == hashTable[index]) {
+        return false;
+    }
+
+    for (int i = 0; i < hashTableEntryLengths[index]; i++) {
+        int* hashTableEntry = hashTable[index];
+        if (frequency == hashTableEntry[i]) {
             return true;
         }
     }
@@ -15,35 +26,46 @@ bool hasSeenFrequency(int frequency) {
 }
 
 void addFrequency(int frequency) {
-    previouslySeenFrequencies = realloc(previouslySeenFrequencies, ++previouslySeenFrequenciesCount * sizeof(int));
-    previouslySeenFrequencies[previouslySeenFrequenciesCount - 1] = frequency;
+    int index = hashTableIndex(frequency);
+    hashTableEntryLengths[index] += 1;
+    int *hashTableEntry = hashTable[index];
+    hashTableEntry = realloc(hashTableEntry, hashTableEntryLengths[index] * sizeof(int));
+    hashTableEntry[hashTableEntryLengths[index] - 1] = frequency;
+    hashTable[index] = hashTableEntry;
 }
 
-void doReadLoop(int* frequency) {
+bool doReadLoop(FILE *f, int* frequency) {
     int frequencyChange = 0;
 
-    FILE *f = fopen("input1.txt", "r");
     while (1 == fscanf(f, "%d\n", &frequencyChange)) {
         *frequency += frequencyChange;
 
         if (hasSeenFrequency(*frequency)) {
             printf("%d\n", *frequency);
-            fclose(f);
-            exit(0);
+            return false;
         }
 
         addFrequency(*frequency);
     }
-    fclose(f);
+
+    return true;
 }
 
 int main() {
     int frequency = 0;
 
-    addFrequency(frequency);
-    while (true) {
-        doReadLoop(&frequency);
+    for (int i = 0; i < hashTableSize; i++) {
+        hashTable[i] = NULL;
+        hashTableEntryLengths[i] = 0;
     }
+
+    addFrequency(frequency);
+
+    FILE *f = fopen("input1.txt", "r");
+    while (doReadLoop(f, &frequency)) {
+        rewind(f);
+    }
+    fclose(f);
 
     return 0;
 }
