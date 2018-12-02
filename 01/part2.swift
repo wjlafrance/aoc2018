@@ -1,6 +1,6 @@
 import Foundation
 
-let inputPath = "/Users/lafrance/dev/aoc2018/01/input1.txt"
+let inputPath = "input1.txt"
 guard let inputFile = try? Data(contentsOf: URL(fileURLWithPath: inputPath)) else {
     fatalError("Could not open input file")
 }
